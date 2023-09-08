@@ -32,3 +32,18 @@ class People(db.Model):
             "birth_year": self.birth_year,
             "eye_color": self.eye_color,
             }
+
+class Planets(db.Model):
+    __tablename__ = "planets"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    diameter = db.Column(db.Integer, unique=False, nullable=False)
+    gravity = db.Column(db.String(120), unique=False, nullable=False)
+        
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "diameter": self.diameter,
+            "gravity": self.gravity,
+            }
