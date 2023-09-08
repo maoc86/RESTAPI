@@ -58,6 +58,75 @@ def handle_users(user_id=None):
 
     return jsonify({"msg": "Request not valid"}), 400
 
+@app.route('/user/<int:id_user>/favorites', methods=['GET'])
+def obtener_favoritos(id_user):
+
+    response_people = User.query.filter_by(id=id_user).first().peopleFav
+    response_planets = User.query.filter_by(id=id_user).first().planetsFav
+    People = list(map(lambda x: x.serialize(), response_people))
+    Planets = list(map(lambda x: x.serialize(), response_planets))
+
+    return jsonify({
+        "PeopleFav": People,
+        "PlanetsFav": Planets
+    }), 200
+
+@app.route('/favorite/planets/<int:planets_id>', methods=['POST'])
+def add_planet_fav(planets_id):
+    id_user = 2  
+    user = User.query.get(id_user)
+    planet = Planets.query.get(planets_id)
+    favList = User.query.filter_by(id=id_user).first().planetsFav
+    favList.append(planet)
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Your favorite planet has been added correctly :)",
+        "PlanetsFav": list(map(lambda x: x.serialize(), favList))
+    }), 200
+
+@app.route('/user/<int:user_id>/favorite/people/<int:people_id>', methods=['POST'])
+def handle_people_favorites(user_id, people_id):
+    id_user = user_id
+    user = User.query.get(id_user)
+    character = People.query.get(people_id)
+    print(id_user)
+    favList = User.query.filter_by(id=id_user).first().peopleFav
+    favList.append(character)
+    db.session.commit()
+
+    return jsonify({
+        "msg": "Your favorite character has been added correctly :)",
+        "PeopleFav": list(map(lambda x: x.serialize(), favList))
+    }), 200
+
+@app.route('/favorite/planets/<int:planets_id>', methods=['DELETE'])
+def remove_planet_fav(planets_id):
+    id_user = 2
+    user = User.query.get(id_user)
+    planet = Planets.query.get(planets_id)
+    favList = User.query.filter_by(id=id_user).first().planetsFav
+    favList.remove(planet)
+    db.session.commit()
+    return jsonify({
+        "msg": "Your favorite planet has been deleted correctly :(",
+        "PlanetsFav": list(map(lambda x: x.serialize(), favList))
+    }), 200
+
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def remove_character_fav(people_id):
+    id_user = 2
+    user = User.query.get(id_user)
+    character = People.query.get(people_id)
+    favList = User.query.filter_by(id=id_user).first().peopleFav
+    favList.remove(character)
+    db.session.commit()
+
+    return jsonify({
+        "success": "Your favorite character has been deleted correctly :(",
+        "PlanetsFav": list(map(lambda x: x.serialize(), favList))
+    }), 200
+
 @app.route('/people', methods=['GET', 'POST'])
 def handle_people():
 
