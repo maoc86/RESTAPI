@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, People
 #from models import Person
 
 app = Flask(__name__)
@@ -44,6 +44,59 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+@app.route('/users', methods=['GET'])
+@app.route('/users/<int:user_id>', methods=['GET'])
+def handle_users(user_id=None):
+    if user_id is None:
+        users = User.query.all()
+        return jsonify([x.serialize() for x in users]), 200
+
+    user = User.query.filter_by(id=user_id).first()
+    if user is not None:
+        return jsonify(user.serialize()), 200
+
+    return jsonify({"msg": "Request not valid"}), 400
+
+@app.route('/people', methods=['GET', 'POST'])
+def handle_people():
+
+    if request.method == 'POST':
+        body = request.get_json()
+        character = People(
+            name=body['name'], 
+            birth_year= body['birth_year'],
+            eye_color=body['eye_color']
+        )
+        db.session.add(character)
+        db.session.commit()
+        response_body = {
+        "msg": "Character added correctly!"
+        }
+        return jsonify(response_body), 200
+
+    if request.method == 'GET':
+        all_people = People.query.all()
+        all_people =list(map(lambda x: x.serialize(), all_people))
+        response_body = all_people
+        return jsonify(response_body), 200
+
+@app.route('/people/<int:character_id>', methods=['GET'])
+def get_character(character_id):
+    character_query = People.query.get(character_id)
+    
+    if not character_query:
+        response_body = {
+            "msg" : "The character you are looking for does not exist."
+        }
+        return jsonify(response_body), 200
+
+    data_character = character_query.serialize()
+    return jsonify({
+        "result": data_character
+    }), 200
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
